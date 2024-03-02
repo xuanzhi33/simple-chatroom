@@ -12,6 +12,7 @@ async def on_close(client):
 
 @server.on_message
 async def on_message(client, message):
-    server.broadcast(clients, message)
+    msg = f"{client.remote_address[0]}: {message}"
+    server.broadcast(clients, msg)
 
 server.serve()
