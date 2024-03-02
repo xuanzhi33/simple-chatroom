@@ -18,5 +18,5 @@ python server.py
 
 ## 使用
 
-使用浏览器打开 client.html 即可。
+使用浏览器打开 `index.html`
 

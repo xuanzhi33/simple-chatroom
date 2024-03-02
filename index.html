@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<!--Made with ❤ by XUANZHI-->
+<!--该页面已接入百度统计-->
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="theme-color" content="#e9f1e9">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>简单聊天室</title>
+    <!-- Bootstrap -->
+    <link href="https://unpkg.zhimg.com/bootstrap@4.4.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script>
+        var _hmt = _hmt || [];
+        (function () {
+            var hm = document.createElement("script");
+            hm.src = "https://hm.baidu.com/hm.js?2a6aca6b85659d07cf5d9e5417c4a5f5";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+</head>
+
+<body>
+    <br class="brBefore">
+    <br class="brBefore">
+    <div class="container" id="app">
+        <textarea class="form-control" ref="msgs" rows="10" :value="msgs" readonly></textarea>
+        <input class="form-control mt-2" @keyup.enter="sendMsg" v-model="msg" placeholder="输入消息后按回车键发送...">
+    </div>
+    </div>
+    <br>
+    <br>
+    <script src="https://unpkg.zhimg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script>
+        // 服务器地址
+        const server = 'ws://localhost:8765';
+
+
+        class WSManager {
+            constructor(uri, app) {
+                this.app = app;
+                this.uri = uri;
+                this.connected = false;
+            }
+            sendMsg(msg) {
+                if (!this.connected) {
+                    this.log('服务器未连接，无法发送消息');
+                    return;
+                }
+                this.ws.send(msg);
+            }
+            log(msg) {
+                this.app.log(msg);
+            }
+            connect() {
+                this.log('正在连接：' + this.uri);
+                this.ws = new WebSocket(this.uri);
+                this.ws.onopen = () => {
+                    this.log('连接成功：' + this.uri);
+                    this.connected = true;
+                }
+                this.ws.onmessage = (e) => {
+                    this.log(e.data);
+                }
+                this.ws.onclose = () => {
+                    this.connected = false;
+                    this.log('连接断开，5秒后重连');
+                    setTimeout(() => {
+                        this.connect();
+                    }, 5000);
+                }
+            }
+        }
+
+        Vue.createApp({
+            data() {
+                return {
+                    msg: '',
+                    msgs: '',
+                    ws: null
+                }
+            },
+            mounted() {
+                this.ws = new WSManager(server, this);
+                this.ws.connect();
+            },
+            methods: {
+                sendMsg() {
+                    this.ws.sendMsg(this.msg);
+                    this.msg = '';
+                },
+                log(msg) {
+                    this.msgs += msg + '\n';
+                    this.$refs.msgs.scrollTop = this.$refs.msgs.scrollHeight;
+                }
+            }
+        }).mount('#app');
+
+    </script>
+</body>
+
+</html>
